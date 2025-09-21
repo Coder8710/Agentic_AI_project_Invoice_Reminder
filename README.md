@@ -86,13 +86,7 @@ It integrates **QuickBooks Online**, **Google Gemini**, **Discord**, and **Email
 
 - 🏪 **Shops & Small Businesses** – Manage customer payments  
 - 📑 **Freelancers** – Send professional reminders to clients  
-- 🏦 **Agencies** – Ensure steady cash flow with minimal effort  
-
----
-
-## 📜 License  
-
-This project is licensed under the MIT License – see the [LICENSE](LICENSE) file for details.  
+- 🏦 **Agencies** – Ensure steady cash flow with minimal effort   
 
 ---
 
