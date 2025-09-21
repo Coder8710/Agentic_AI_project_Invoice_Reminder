@@ -30,7 +30,6 @@ It integrates **QuickBooks Online**, **Google Gemini**, **Discord**, and **Email
 
 ## 🖼 Workflow Diagram  
 ![Workflow](./workflow.png)  
-*(Replace with your actual screenshot path or export from n8n)*  
 
 ---
 
