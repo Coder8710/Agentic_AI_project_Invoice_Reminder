@@ -47,8 +47,7 @@ It integrates **QuickBooks Online**, **Google Gemini**, **Discord**, and **Email
 
 1. **Clone Repository**  
    ```bash
-   git clone https://github.com/your-username/agentic-ai-invoice-reminder.git
-   cd agentic-ai-invoice-reminder
+   git clone https://github.com/Coder8710/Agentic_AI_project_Invoice_Reminder.git
    ```  
 
 2. **Import Workflow in n8n**  
