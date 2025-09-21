@@ -1,0 +1,384 @@
+{
+  "name": "Agentic_AI_project",
+  "nodes": [
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=# AI Agent Prompt\n\n## Role\nYou are an AI Collections Assistant responsible for managing overdue invoice communications with customers in QuickBooks Online.  \n\n## Task\nDraft and write late payment reminder emails to customers whose invoices are past due. Your tone should adapt to the severity of the delay:  \n- *Polite and understanding* for invoices overdue less than 7 days.  \n- *Firm but professional* for invoices overdue between 7–21 days.  \n- *Strict and urgent* for invoices overdue more than 21 days.  \n\nFor each customer, generate a unique subject line and message body.  \n\n## Input\n- Today’s date (for calculating overdue days).  \n- The list of overdue invoices retrieved from QuickBooks Online.  \n\n## Tools\n- getInvoices(query): Retrieves invoices. Use WHERE DueDate < [Today] in the query string to get overdue invoices. The current date is {{ $now.format('yyyy-MM-dd') }} . Do not use \"SELECT * FROM Invoice\" in the query parameter; just use WHERE as instructed.\n\n## Outputs\nReturn a JSON summary with the following structure:  \n\n\\\\\\`json\n{\n  \"totalEmailsSent\": [number],\n  \"emails\": [\n    {\n      \"customerName\": \"[Name]\",\n      \"invoiceAmount\": \"[Amount]\",\n      \"daysOverdue\": \"[Number of Days]\",\n      \"subject\": \"[Generated Subject]\",\n      \"body\": \"[Generated Body]\"\n    }\n  ]\n}\n\\\\\\`",
+        "hasOutputParser": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        416,
+        0
+      ],
+      "id": "19504cc9-1ddd-42ff-8fd2-b54aa24c6aea",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        288,
+        208
+      ],
+      "id": "1498bb19-d314-47a3-978e-209d11e82493",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "R8H27TF357sM4cBt",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "session"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        464,
+        224
+      ],
+      "id": "f14e0ae0-4980-4c45-bdaf-41148d24d832",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "resource": "invoice",
+        "operation": "getAll",
+        "filters": {
+          "query": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Query', ``, 'string') }}"
+        }
+      },
+      "type": "n8n-nodes-base.quickbooksTool",
+      "typeVersion": 1,
+      "position": [
+        624,
+        224
+      ],
+      "id": "c343262c-cc05-4bc8-ba13-689748bf1462",
+      "name": "getInvoices",
+      "credentials": {
+        "quickBooksOAuth2Api": {
+          "id": "QqAKo8fTOuq6zARY",
+          "name": "QuickBooks Online account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "sendAndWait",
+        "guildId": {
+          "__rl": true,
+          "value": "1419259950932168734",
+          "mode": "list",
+          "cachedResultName": "om's server",
+          "cachedResultUrl": "https://discord.com/channels/1419259950932168734"
+        },
+        "channelId": {
+          "__rl": true,
+          "value": "1419262891139534920",
+          "mode": "list",
+          "cachedResultName": "approvals",
+          "cachedResultUrl": "https://discord.com/channels/1419259950932168734/1419262891139534920"
+        },
+        "message": "=Customer:{{ $json.customerName }}\nSubject:{{ $json.emailSubject }}\nBody:\n {{ $json.emailBody }}",
+        "approvalOptions": {
+          "values": {
+            "approvalType": "double"
+          }
+        },
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.discord",
+      "typeVersion": 2,
+      "position": [
+        1232,
+        0
+      ],
+      "id": "49822877-2c3e-4412-a319-d9e90bf5833c",
+      "name": "Create a channel",
+      "webhookId": "49471628-1b58-48a8-9c78-a270f92cb172",
+      "credentials": {
+        "discordBotApi": {
+          "id": "7sPCgrOYYtv4yAUg",
+          "name": "Discord Bot account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"emailsSent\": 10,\n  \"details\": [{\n    \"customerName\": \"Kevin Cookie Company\",\n    \"customerEmail\": \"kevin@kevincookiecompany.com\",\n    \"amountOverdue\": 1000,\n    \"daysOverdue\": 7,\n    \"emailSubject\": \"Payment is 7 days overdue!\",\n    \"emailBody\": \"EOM. - David's Agent\"\n  }]\n}\n"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        784,
+        208
+      ],
+      "id": "28760e06-417e-4829-8931-7be2cd84a01e",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "weeks"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        208,
+        0
+      ],
+      "id": "86d5040b-15d3-4686-8fd0-b1ba3f1b38f2",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "output.details",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        768,
+        0
+      ],
+      "id": "43db38cd-31f3-4882-94d4-e1ad25f879e0",
+      "name": "Split Out"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        976,
+        0
+      ],
+      "id": "d0989423-5afd-41cc-bc33-0c10712259b9",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "6acb8ef6-95ed-4908-90e3-bd9cac0487d1",
+              "leftValue": "={{ $json.data.approved }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1440,
+        0
+      ],
+      "id": "a7176a52-8821-470a-8b0c-6b6c3c064c16",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "fromEmail": "omportfolio910@gmail.com",
+        "toEmail": "={{ $('Loop Over Items').item.json.customerEmail }}",
+        "subject": "={{ $('Loop Over Items').item.json.emailSubject }}",
+        "emailFormat": "text",
+        "text": "={{ $('Loop Over Items').item.json.emailBody }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        1696,
+        -16
+      ],
+      "id": "1b260dcb-23ee-4c83-a573-f2147f10a685",
+      "name": "Send email",
+      "webhookId": "4415b0c9-0875-4981-a992-84cd55776eb2",
+      "credentials": {
+        "smtp": {
+          "id": "ZuwrFnmMAekVfZxh",
+          "name": "SMTP account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "getInvoices": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Create a channel",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create a channel": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Send email",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send email": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "cb8dc320-0596-4dc1-937f-fdf58c631c58",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "04c16d8fe41c04459149640794bbc83183e986434faf718cd38e3f29433e91f1"
+  },
+  "id": "TjWV5JLKiATRMSA7",
+  "tags": []
+}
